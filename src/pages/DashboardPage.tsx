@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import SwapCalculatorModal from '../components/SwapCalculatorModal.tsx';
 import { VoiceAssistant } from '../components/VoiceAssistant';
 import { Dialog, DialogContent } from '../components/ui/dialog';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface InventoryItem {
   id: string;
@@ -111,6 +112,23 @@ export function DashboardPage() {
   const matchesFound = 12; // Mock value
   const atRiskItems = inventoryItems.filter(item => item.daysUntilExpiry <= 10);
   const valueAtRisk = atRiskItems.reduce((sum, item) => sum + item.value, 0);
+
+  // Generate random chart data
+  const generateChartData = () => {
+    const data = [];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    for (let i = 0; i < 12; i++) {
+      data.push({
+        month: months[i],
+        profit: Math.floor(Math.random() * 5000) + 1000,
+        sales: Math.floor(Math.random() * 8000) + 2000,
+        loss: Math.floor(Math.random() * 2000) + 0,
+      });
+    }
+    return data;
+  };
+
+  const chartData = generateChartData();
 
   // Command dictionary
   const navigationCommands = [
@@ -418,6 +436,25 @@ export function DashboardPage() {
             </Card>
           </div>
         </div>
+      </div>
+
+      {/* Performance Chart */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Card className="p-6 shadow-lg border-2">
+          <h3 className="text-[#0F172A] mb-6 text-center">Performance Overview</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip formatter={(value, name) => [`₹${value}`, name]} />
+              <Legend />
+              <Line type="monotone" dataKey="profit" stroke="#10B981" strokeWidth={3} name="Profit" />
+              <Line type="monotone" dataKey="sales" stroke="#3B82F6" strokeWidth={3} name="Sales" />
+              <Line type="monotone" dataKey="loss" stroke="#EF4444" strokeWidth={3} name="Loss" />
+            </LineChart>
+          </ResponsiveContainer>
+        </Card>
       </div>
 
       {/* Modals */}
