@@ -18,72 +18,47 @@ interface ProposeSwapModalProps {
 }
 
 export function ProposeSwapModal({ isOpen, onClose, product }: ProposeSwapModalProps) {
-  const [message, setMessage] = useState('Hi, I have an item to propose for swap');
-  const [myItems, setMyItems] = useState<CategoryProduct[]>([]);
-  const [selectedMyItemId, setSelectedMyItemId] = useState<string | null>(null);
-  const [myOfferValue, setMyOfferValue] = useState<string>('');
-  const [theirEstimatedValue, setTheirEstimatedValue] = useState<string>('');
+  const [message, setMessage] = useState('Hi, I have rice to propose for swap');
+  const [riceKg, setRiceKg] = useState<string>('');
+  const [showCalculation, setShowCalculation] = useState(false);
+
+  // Fixed prices
+  const RICE_PRICE_PER_KG = 60;
+  const POTATO_PRICE_PER_KG = 30;
 
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem('userProducts') || '[]');
-    // map to the shape we need and include a numeric price if available
-    const items = stored.map((p: any) => ({ id: p.id, title: p.productName, shopName: p.userId, price: parseFloat(p.sellingPrice || p.asking_price || '0') || 0 }));
-    setMyItems(items);
-    if (items.length) setSelectedMyItemId(items[0].id);
-  }, [isOpen]);
-
-  useEffect(() => {
-    // when modal opens, set default values for amounts
-    if (isOpen && product) {
-      // default their value from product.price if available
-      const theirDefault = (product as any).price || (product as any).asking_price || 0;
-      setTheirEstimatedValue(theirDefault ? String(theirDefault) : '');
-
-      // default myOfferValue from selectedMyItem, if available
-      if (selectedMyItemId) {
-        const mine = myItems.find(i => i.id === selectedMyItemId);
-        if (mine && mine.price) setMyOfferValue(String(mine.price));
-      }
+    if (!isOpen) {
+      setRiceKg('');
+      setShowCalculation(false);
+      setMessage('Hi, I have rice to propose for swap');
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, product, selectedMyItemId]);
+  }, [isOpen]);
 
   if (!isOpen || !product) return null;
 
-  const computeRisk = (myVal: number, theirVal: number) => {
-    if (theirVal === 0) return { diff: myVal - theirVal, percent: 100, level: 'high' as const };
-    const diff = theirVal - myVal; // positive => shopkeeper loses (giving higher value)
-    const pct = Math.abs(diff) / (theirVal || 1) * 100;
-    let level: 'low' | 'medium' | 'high' = 'low';
-    if (pct <= 10) level = 'low';
-    else if (pct <= 30) level = 'medium';
-    else level = 'high';
-    return { diff, percent: Math.min(100, pct), level };
-  };
-
-  const submitOffer = () => {
-    const myVal = parseFloat(myOfferValue) || 0;
-    const theirVal = parseFloat(theirEstimatedValue) || 0;
-    const risk = computeRisk(myVal, theirVal);
-    // basic validation
-    if (!selectedMyItemId) {
-      alert('Please select one of your items to propose');
+  const calculateSwap = () => {
+    const kg = parseFloat(riceKg) || 0;
+    if (kg <= 0) {
+      alert('Please enter a valid amount of rice in kg');
       return;
     }
-    if (!myVal || !theirVal) {
-      if (!confirm('One of the values is missing or zero. Proceed anyway?')) return;
-    }
-    const myItem = myItems.find(i => i.id === selectedMyItemId);
+    setShowCalculation(true);
+  };
+
+  const sendSwapRequest = () => {
+    const kg = parseFloat(riceKg) || 0;
+    const riceValue = kg * RICE_PRICE_PER_KG;
+    const potatoKg = riceValue / POTATO_PRICE_PER_KG;
+
     const offer = {
       id: 'offer-' + Date.now(),
       productId: product.id,
       fromUserId: 'me',
-      myItemId: selectedMyItemId,
-      myItemTitle: myItem?.title || '',
+      riceKg: kg,
+      riceValue,
+      potatoKg,
+      potatoValue: riceValue,
       productTitle: product.title || '',
-      myOfferValue: myVal,
-      theirEstimatedValue: theirVal,
-      risk,
       message,
       createdAt: new Date().toISOString(),
       status: 'pending'
@@ -93,14 +68,13 @@ export function ProposeSwapModal({ isOpen, onClose, product }: ProposeSwapModalP
     offers.push(offer);
     localStorage.setItem('offers', JSON.stringify(offers));
 
-    // Notify and close
     alert('Offer sent!');
     onClose();
   };
 
-  const myValNum = parseFloat(myOfferValue) || 0;
-  const theirValNum = parseFloat(theirEstimatedValue) || 0;
-  const riskState = computeRisk(myValNum, theirValNum);
+  const kg = parseFloat(riceKg) || 0;
+  const riceValue = kg * RICE_PRICE_PER_KG;
+  const potatoKg = riceValue / POTATO_PRICE_PER_KG;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -115,86 +89,56 @@ export function ProposeSwapModal({ isOpen, onClose, product }: ProposeSwapModalP
           </button>
         </div>
         <div className="p-4 space-y-4">
-          <div>
-            <label className="block text-sm mb-2">Pick one of your items to propose</label>
-            <div className="flex flex-col gap-2">
-              {myItems.length === 0 && <p className="text-sm text-muted-foreground">No items found. Add items in your inventory first.</p>}
-              {myItems.map(item => (
-                <label key={item.id} className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="myItem"
-                    checked={selectedMyItemId === item.id}
-                    onChange={() => {
-                      setSelectedMyItemId(item.id);
-                      setMyOfferValue(String(item.price || ''));
-                    }}
-                  />
-                  <span>{item.title} {item.price ? `— ₹${item.price}` : ''}</span>
-                </label>
-              ))}
-            </div>
-          </div>
+          {!showCalculation ? (
+            <>
+              <div>
+                <label className="block text-sm mb-2">Enter Rice Quantity (kg)</label>
+                <Input
+                  type="number"
+                  value={riceKg}
+                  onChange={(e) => setRiceKg(e.target.value)}
+                  placeholder="e.g., 5"
+                  className="h-12"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  1 kg rice = ₹{RICE_PRICE_PER_KG}, 1 kg potato = ₹{POTATO_PRICE_PER_KG}
+                </p>
+              </div>
 
-          {/* Commitments: values for the two items */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm mb-2">Your Offered Value (₹)</label>
-              <Input
-                type="number"
-                value={myOfferValue}
-                onChange={(e) => setMyOfferValue(e.target.value)}
-                placeholder="e.g., 500"
-                className="h-12"
-              />
-            </div>
-            <div>
-              <label className="block text-sm mb-2">Their Estimated Value (₹)</label>
-              <Input
-                type="number"
-                value={theirEstimatedValue}
-                onChange={(e) => setTheirEstimatedValue(e.target.value)}
-                placeholder="e.g., 450"
-                className="h-12"
-              />
-            </div>
-          </div>
+              <div>
+                <label className="block text-sm mb-2">Message</label>
+                <Input value={message} onChange={(e) => setMessage(e.target.value)} className="h-12" />
+              </div>
 
-          {/* Risk bar and profit/loss */}
-          <div>
-            <label className="block text-sm mb-2">Fair Value Risk</label>
-            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-              <div
-                style={{ width: `${riskState.percent}%`, backgroundColor: (riskState.level === 'low' ? '#16a34a' : riskState.level === 'medium' ? '#f59e0b' : '#ef4444') }}
-                className="h-full transition-width"
-              />
-            </div>
-            <div className="flex items-center justify-between text-xs mt-2">
-              <span>Risk: <strong className={`ml-1 ${riskState.level === 'low' ? 'text-green-600' : riskState.level === 'medium' ? 'text-yellow-600' : 'text-red-600'}`}>{riskState.level.toUpperCase()}</strong></span>
-              <span>{riskState.percent.toFixed(0)}%</span>
-            </div>
-            <div className="mt-2 text-sm">
-              {/** compute shopkeeper profit/loss */}
-              {(() => {
-                const myVal = parseFloat(myOfferValue) || 0;
-                const theirVal = parseFloat(theirEstimatedValue) || 0;
-                const profit = myVal - theirVal; // positive -> shopkeeper profits
-                if (profit > 0) return <span className="text-green-600">Shopkeeper profit: ₹{profit.toFixed(2)}</span>;
-                if (profit < 0) return <span className="text-red-600">Shopkeeper loss: ₹{Math.abs(profit).toFixed(2)}</span>;
-                return <span className="text-green-600">Neutral trade</span>;
-              })()}
-            </div>
-          </div>
+              <div className="flex items-center justify-between">
+                <Button onClick={calculateSwap} className="bg-[#10B981]">Calculate Swap</Button>
+                <Button variant="outline" onClick={onClose}>Cancel</Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="text-center">
+                <h4 className="text-lg font-semibold mb-4">Swap Calculation</h4>
+                <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                  <p><strong>You offer:</strong> {kg} kg rice (₹{riceValue.toFixed(2)})</p>
+                  <p><strong>You get:</strong> {potatoKg.toFixed(2)} kg potatoes (₹{riceValue.toFixed(2)})</p>
+                  <p className="text-sm text-muted-foreground">
+                    Based on market rates: Rice ₹{RICE_PRICE_PER_KG}/kg, Potatoes ₹{POTATO_PRICE_PER_KG}/kg
+                  </p>
+                </div>
+              </div>
 
-          <div>
-            <label className="block text-sm mb-2">Message</label>
-            <Input value={message} onChange={(e) => setMessage(e.target.value)} className="h-12" />
-          </div>
+              <div>
+                <label className="block text-sm mb-2">Message</label>
+                <Input value={message} onChange={(e) => setMessage(e.target.value)} className="h-12" />
+              </div>
 
-          <div className="flex items-center justify-between">
-            <Button onClick={submitOffer} className="bg-[#10B981]">Send Offer</Button>
-            <Button variant="outline" onClick={onClose}>Cancel</Button>
-          </div>
+              <div className="flex items-center justify-between">
+                <Button onClick={sendSwapRequest} className="bg-[#10B981]">Send Swap Request</Button>
+                <Button variant="outline" onClick={() => setShowCalculation(false)}>Back</Button>
+              </div>
+            </>
+          )}
         </div>
       </Card>
     </div>
