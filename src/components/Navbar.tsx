@@ -49,18 +49,23 @@ export function Navbar() {
     return location.pathname.startsWith(path);
   };
 
-  const handleLogout = () => {
-    signOutUser()
-      .then(() => {
-        setUser(null);
-        setDropdownOpen(false);
-        toast.success('Logged out successfully');
-        navigate('/');
-      })
-      .catch((error) => {
-        console.error('Logout error:', error);
-        toast.error('Failed to logout');
-      });
+const handleLogout = async () => {
+    try {
+      await signOutUser();
+    } catch (error) {
+      console.error('Supabase logout failed, clearing local storage anyway:', error);
+    }
+    // Always clear local state
+    setUser(null);
+    setDropdownOpen(false);
+    // Trigger storage event for cross-tab sync
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'stockswap_user',
+      oldValue: localStorage.getItem('stockswap_user'),
+      newValue: null,
+    }));
+    toast.success('Logged out successfully');
+    navigate('/');
   };
 
   return (
