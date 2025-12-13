@@ -1,0 +1,415 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║              📊 STOCKSWAP OTP AUTHENTICATION FLOW DIAGRAM                    ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 🔄 COMPLETE LOGIN FLOW                                                      │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+                            ┌─────────────────┐
+                            │  User Opens     │
+                            │  /login Page    │
+                            └────────┬────────┘
+                                     │
+                                     ▼
+                            ┌─────────────────┐
+                            │  Step 1:        │
+                            │  Enter Email    │
+                            │  ┌───────────┐  │
+                            │  │ your@     │  │
+                            │  │ email.com │  │
+                            │  └───────────┘  │
+                            └────────┬────────┘
+                                     │
+                            [Click "Send OTP"]
+                                     │
+                                     ▼
+                    ┌────────────────────────────────┐
+                    │  signInWithEmailOTP(email)     │
+                    │  ────────────────────────────  │
+                    │  supabase.auth.signInWithOtp() │
+                    └────────┬───────────────────────┘
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │  Supabase       │
+                    │  Sends Email    │
+                    │  with OTP       │
+                    └────────┬────────┘
+                             │
+                             ▼
+            ╔════════════════════════════════════════╗
+            ║   📧 EMAIL RECEIVED                    ║
+            ║                                        ║
+            ║   Your Login Code for StockSwap       ║
+            ║                                        ║
+            ║   Your 6-digit verification code is:  ║
+            ║                                        ║
+            ║   ┌─────────────────────────────┐     ║
+            ║   │        4 8 3 9 2 1         │     ║
+            ║   └─────────────────────────────┘     ║
+            ║                                        ║
+            ║   ⏰ This code expires in 10 minutes  ║
+            ╚════════════════════════════════════════╝
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │  User Checks    │
+                    │  Email Inbox    │
+                    └────────┬────────┘
+                             │
+                             ▼
+                    ┌─────────────────┐
+                    │  Step 2:        │
+                    │  Enter OTP      │
+                    │  ┌───────────┐  │
+                    │  │ 483921    │  │
+                    │  └───────────┘  │
+                    └────────┬────────┘
+                             │
+                    [Click "Verify & Login"]
+                             │
+                             ▼
+            ┌────────────────────────────────┐
+            │  verifyEmailOTP(email, otp)    │
+            │  ──────────────────────────────│
+            │  supabase.auth.verifyOtp()     │
+            └────────┬───────────────────────┘
+                     │
+                     ▼
+            ┌─────────────────┐
+            │  Supabase       │
+            │  Verifies Code  │
+            └────────┬────────┘
+                     │
+         ┌───────────┴───────────┐
+         │                       │
+         ▼                       ▼
+    ✅ VALID               ❌ INVALID
+         │                       │
+         ▼                       ▼
+┌─────────────────┐     ┌─────────────────┐
+│  Create Session │     │  Show Error     │
+│  Save Profile   │     │  "Invalid OTP"  │
+└────────┬────────┘     └─────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Redirect to    │
+│  /dashboard     │
+└────────┬────────┘
+         │
+         ▼
+    🎉 SUCCESS!
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 📁 CODE FLOW - FILE BY FILE                                                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+/pages/LoginPage.tsx
+│
+├─ handleSendOtp()
+│  │
+│  └─→ /lib/supabaseAuth.ts
+│      │
+│      └─→ signInWithEmailOTP(email)
+│          │
+│          └─→ supabase.auth.signInWithOtp()
+│              │
+│              └─→ Supabase sends email
+│                  │
+│                  └─→ Email template with {{ .Token }}
+│
+└─ handleVerifyOtp()
+   │
+   └─→ /lib/supabaseAuth.ts
+       │
+       └─→ verifyEmailOTP(email, otp)
+           │
+           └─→ supabase.auth.verifyOtp()
+               │
+               ├─→ Save user profile
+               └─→ Create session
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 🎯 KEY FUNCTIONS                                                            │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Function: signInWithEmailOTP()
+Location: /lib/supabaseAuth.ts
+Purpose:  Send OTP code via email
+Input:    email (string)
+Output:   Supabase response
+Action:   Triggers email with {{ .Token }}
+
+Function: verifyEmailOTP()
+Location: /lib/supabaseAuth.ts
+Purpose:  Verify the 6-digit code
+Input:    email (string), token (string)
+Output:   User session
+Action:   Creates authenticated session
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 🔄 STATE FLOW IN LoginPage.tsx                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Initial State:
+  step = 'email'
+  email = ''
+  otp = ''
+  loading = false
+
+User enters email → Clicks "Send OTP"
+  ↓
+  loading = true
+  ↓
+  signInWithEmailOTP(email) called
+  ↓
+  SUCCESS:
+    step = 'otp'
+    countdown = 60
+    loading = false
+    Show success toast
+  ↓
+  User enters 6-digit OTP
+  ↓
+  User clicks "Verify & Login"
+  ↓
+  loading = true
+  ↓
+  verifyEmailOTP(email, otp) called
+  ↓
+  SUCCESS:
+    navigate('/dashboard')
+    Show success toast
+  
+  FAIL:
+    otp = ''
+    loading = false
+    Show error toast
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 🎨 UI STATE DIAGRAM                                                         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────┐
+│ LOGIN PAGE (step 1)  │
+│ ┌──────────────────┐ │      Send OTP      ┌──────────────────────┐
+│ │ Email Input      │ │  ───────────────→  │ OTP PAGE (step 2)    │
+│ │ [your@email.com] │ │                    │ ┌──────────────────┐ │
+│ │                  │ │                    │ │ OTP Input        │ │
+│ │ [Send OTP]       │ │                    │ │ [●●●●●●]         │ │
+│ └──────────────────┘ │                    │ │                  │ │
+└──────────────────────┘                    │ │ [Verify & Login] │ │
+                                            │ │                  │ │
+                                            │ │ Resend OTP (60s) │ │
+                                            │ │ Change email     │ │
+                                            │ └──────────────────┘ │
+                                            └──────────────────────┘
+                                                       │
+                                                       │ Verify
+                                                       ▼
+                                            ┌──────────────────────┐
+                                            │ DASHBOARD PAGE       │
+                                            │ (Authenticated)      │
+                                            └──────────────────────┘
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 📧 SUPABASE EMAIL TEMPLATE FLOW                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+User requests OTP
+        │
+        ▼
+Supabase receives signInWithOtp()
+        │
+        ▼
+Supabase generates 6-digit token
+        │
+        ▼
+Supabase loads "Magic Link" template
+        │
+        ▼
+Template contains {{ .Token }}?
+        │
+    ┌───┴───┐
+    │       │
+    ▼       ▼
+  YES      NO
+    │       │
+    │       └─→ ❌ Sends magic link (WRONG!)
+    │
+    └─→ ✅ Replaces {{ .Token }} with 6-digit code
+        │
+        ▼
+    Sends email with code
+        │
+        ▼
+    User receives: "Your code is: 483921"
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 🐛 CONSOLE LOG FLOW                                                         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+App Loads:
+  ╔═══════════════════════════════════════════════════════╗
+  ║   🚀 StockSwap - OTP Authentication Ready!          ║
+  ╚═══════════════════════════════════════════════════════╝
+  ⚠️  Still receiving magic links?
+  📋 Quick Fix: Update Supabase template...
+
+User Sends OTP:
+  🚀 Starting OTP request for: user@example.com
+  📧 Sending OTP to: user@example.com
+  ✅ OTP sent successfully
+
+User Enters OTP:
+  🔐 Verifying OTP: 48****
+  🔐 Verifying OTP for: user@example.com
+  ✅ OTP verified successfully
+  👤 Saving user profile...
+  🎉 Login successful! Redirecting to dashboard...
+  ✅ User logged in: user@example.com
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ ✅ SUCCESS VS ❌ FAILURE PATHS                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+SUCCESS PATH:
+  Enter email → Send OTP → Receive email → Enter correct OTP → Login → Dashboard
+
+FAILURE PATHS:
+
+1. Invalid Email:
+   Enter email → Send OTP → ERROR: Invalid email format
+
+2. OTP Not Received:
+   Enter email → Send OTP → Wait → Check spam → Resend OTP
+
+3. Wrong OTP:
+   Enter email → Send OTP → Receive email → Enter wrong OTP → ERROR → Try again
+
+4. Expired OTP:
+   Enter email → Send OTP → Wait > 10 min → Enter OTP → ERROR: Expired → Resend
+
+5. Magic Link Instead of OTP:
+   Enter email → Send OTP → Receive magic link → ❌ WRONG!
+   → FIX: Update Supabase template with {{ .Token }}
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 🔧 THE FIX DIAGRAM                                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+CURRENT STATE (Before Fix):
+  Supabase Template:
+  ┌─────────────────────────────────┐
+  │ Click here to login:            │
+  │ {{ .ConfirmationURL }}          │  ❌ WRONG!
+  │                                 │
+  │ This creates a magic link!      │
+  └─────────────────────────────────┘
+
+FIXED STATE (After Fix):
+  Supabase Template:
+  ┌─────────────────────────────────┐
+  │ Your verification code:         │
+  │ {{ .Token }}                    │  ✅ CORRECT!
+  │                                 │
+  │ This shows: 483921              │
+  └─────────────────────────────────┘
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 📊 TIMING DIAGRAM                                                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+T+0s    User opens /login
+T+5s    User types email
+T+6s    User clicks "Send OTP"
+T+7s    Supabase receives request
+T+8s    Email sent by Supabase
+T+10s   User receives email
+T+15s   User opens email
+T+20s   User sees 6-digit code
+T+25s   User enters code
+T+26s   User clicks "Verify & Login"
+T+27s   Code verified by Supabase
+T+28s   Session created
+T+29s   Redirect to dashboard
+T+30s   ✅ SUCCESS! User logged in
+
+Total time: 30 seconds
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 🎯 COMPONENT INTERACTION                                                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────┐
+│   App.tsx        │
+│  (Routes Setup)  │
+└────────┬─────────┘
+         │
+         └─→ Route: /login
+             │
+             ▼
+     ┌──────────────────┐
+     │ LoginPage.tsx    │
+     │                  │
+     │ - handleSendOtp()│
+     │ - handleVerify() │
+     └────────┬─────────┘
+              │
+              ├─→ Input (email)
+              ├─→ Input (OTP)
+              ├─→ Button (Send)
+              ├─→ Button (Verify)
+              │
+              └─→ Calls:
+                  │
+                  ▼
+         ┌───────────────────┐
+         │ supabaseAuth.ts   │
+         │                   │
+         │ - signInWith...() │
+         │ - verifyEmail...()│
+         └────────┬──────────┘
+                  │
+                  └─→ Calls:
+                      │
+                      ▼
+              ┌──────────────┐
+              │ supabase.ts  │
+              │ (Client)     │
+              └──────┬───────┘
+                     │
+                     └─→ Supabase Cloud
+
+
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                         🎯 SUMMARY                                            ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+Your code implements a perfect two-step OTP flow:
+  1. User enters email → System sends OTP
+  2. User enters OTP → System verifies and logs in
+
+The ONLY thing to fix:
+  → Update Supabase email template to show {{ .Token }}
+
+Everything else is production-ready! ✨
+
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                  📚 For detailed guides, see:                                 ║
+║                  - START_HERE_OTP.md                                          ║
+║                  - OTP_QUICK_FIX.md                                           ║
+║                  - README_OTP_FIX.md                                          ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
