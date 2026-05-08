@@ -21,4 +21,4 @@
 ---
 
 **Orchestration Note:**
-Boltsy should prioritize **Phase 1 completions** (Table Migration) before attempting Phase 2 feature development to ensure data persistence is no longer "mocked."
+Boltsy should prioritize Phase 2 feature development now that Phase 1 is finalized.
