@@ -6,7 +6,7 @@
 
 ## Phase 2: Transactional Intelligence (Next 4 Weeks)
 * [ ] **Swap Calculator Logic:** Implementation of the `SwapCalculatorModal` to calculate fair-value trades based on `priceUtils.ts`.
-* [ ] **Live Chat Integration:** Real-time messaging between traders using Supabase Realtime.
+* [ ] **Live Chat Integration:** Real-time messaging between traders.
 * [ ] **Map Density View:** Enhancing `MapPage` to show clusters of "Expiring Goods" for localized liquidation.
 
 ## Phase 3: Advanced Interaction (Q3 2026)
