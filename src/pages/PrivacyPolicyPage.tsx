@@ -13,7 +13,7 @@ export function PrivacyPolicyPage() {
 
         <section>
           <h2 className="text-xl font-semibold mb-3 text-[#10B981]">2. Data Usage</h2>
-          <p>Your data is used to improve our hyperlocal marketplace experience and ensure secure authentication via Supabase.</p>
+          <p>Your data is used to improve our hyperlocal marketplace experience and ensure secure authentication via Supabase.</p>N
         </section>
 
         <section>
