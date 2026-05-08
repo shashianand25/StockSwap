@@ -6,7 +6,7 @@
 
 ## Phase 2: Transactional Intelligence (Next 4 Weeks)
 * [ ] **Swap Calculator Logic:** Implementation of the `SwapCalculatorModal` to calculate fair-value trades based on `priceUtils.ts`.
-* [ ] **Live Chat Integration:** Real-time messaging between traders.
+* [ ] **Live Chat Integration:** Real-time messaging between traders using Supabase Realtime.
 * [ ] **Map Density View:** Enhancing `MapPage` to show clusters of "Expiring Goods" for localized liquidation.
 
 ## Phase 3: Advanced Interaction (Q3 2026)
@@ -21,4 +21,4 @@
 ---
 
 **Orchestration Note:**
-Boltsy should prioritize Phase 2 feature development now that Phase 1 is finalized.
+Boltsy should prioritize **Phase 1 completions** (Table Migration) before attempting Phase 2 feature development to ensure data persistence is no longer "mocked."
