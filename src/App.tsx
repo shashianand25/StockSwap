@@ -18,6 +18,8 @@ import { VoiceAssistantDemo } from './pages/VoiceAssistantDemo';
 import { AddGoodsPage } from './pages/AddGoodsPage';
 import { TermsOfServicePage } from './pages/TermsOfServicePage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
+import { RefundPolicyPage } from './pages/RefundPolicyPage';
+import { ShippingPolicyPage } from './pages/ShippingPolicyPage';
 import { Toaster } from './components/ui/sonner';
 import { initAuthListener } from './lib/supabaseAuth';
 
@@ -83,6 +85,8 @@ export default function App() {
           <Route path="/sell" element={<AddGoodsPage />} />
           <Route path="/terms-of-service" element={<TermsOfServicePage />} />
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+          <Route path="/refund-policy" element={<RefundPolicyPage />} />
+          <Route path="/shipping-policy" element={<ShippingPolicyPage />} />
         </Routes>
       </Layout>
       <Toaster />
