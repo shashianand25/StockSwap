@@ -7,8 +7,26 @@ export function PrivacyPolicyPage() {
       
       <div className="bg-[#1E293B] p-8 rounded-lg shadow-xl text-gray-300 space-y-6">
         <section>
-          <p>The StockSwap Privacy Policy is currently being updated to reflect our new B2B and Retailer Liquidation protocols. Please check back soon.</p>
+          <h2 className="text-xl font-semibold mb-3 text-[#10B981]">1. Information Collection</h2>
+          <p>We collect information necessary to facilitate B2B transactions and liquidation of inventory on StockSwap.</p>
         </section>
+
+        <section>
+          <h2 className="text-xl font-semibold mb-3 text-[#10B981]">2. Data Usage</h2>
+          <p>Your data is used to improve our hyperlocal marketplace experience and ensure secure authentication via Supabase.</p>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-semibold mb-3 text-[#10B981]">3. Security</h2>
+          <p>We implement industry-standard security measures to protect your business information.</p>
+        </section>
+        
+        <section>
+          <h2 className="text-xl font-semibold mb-3 text-[#10B981]">4. Data Retention</h2>
+          <p>We retain data only as long as necessary to provide our services or as required by law.</p>
+        </section>
+
+        <p className="text-sm text-gray-500 pt-6">Last Updated: May 2026</p>
       </div>
     </div>
   );
