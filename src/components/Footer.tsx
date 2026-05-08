@@ -51,9 +51,9 @@ export function Footer() {
             <h4 className="text-white mb-4">Legal</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href="#terms" className="hover:text-[#10B981] transition-colors">
+                <Link to="/terms-of-service" className="hover:text-[#10B981] transition-colors">
                   Terms of Service
-                </a>
+                </Link>
               </li>
               <li>
                 <a href="#privacy" className="hover:text-[#10B981] transition-colors">
