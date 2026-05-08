@@ -16,6 +16,8 @@ import { OTPVerifyPage } from './pages/OTPVerifyPage';
 import { MapPage } from './pages/MapPage';
 import { VoiceAssistantDemo } from './pages/VoiceAssistantDemo';
 import { AddGoodsPage } from './pages/AddGoodsPage';
+import { TermsOfServicePage } from './pages/TermsOfServicePage';
+import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { Toaster } from './components/ui/sonner';
 import { initAuthListener } from './lib/supabaseAuth';
 
@@ -79,6 +81,8 @@ export default function App() {
           <Route path="/voice-assistant" element={<VoiceAssistantDemo />} />
           <Route path="/add-goods" element={<AddGoodsPage />} />
           <Route path="/sell" element={<AddGoodsPage />} />
+          <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
         </Routes>
       </Layout>
       <Toaster />
