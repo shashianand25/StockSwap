@@ -7,7 +7,7 @@ export function RefundPolicyPage() {
       
       <div className="bg-[#1E293B] p-8 rounded-lg shadow-xl text-gray-300 space-y-6">
         <section>
-          <h2 className="text-xl font-semibold mb-3 text-[#10B981]">1. Eligibility for Refunds</h2>
+          <h2 className="text-xl font-semibold mb-3 text-[#10B981]">1. Refund Eligibility</h2>
           <p>Refunds are typically considered for specific circumstances, such as duplicate orders or non-delivery of services within agreed timelines.</p>
         </section>
 
